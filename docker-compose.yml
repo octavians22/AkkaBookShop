@@ -93,7 +93,7 @@ services:
     image: postgres:latest
     container_name: postgres_db
     ports:
-    - "5432:5432"
+    - "5440:5432"
     volumes:
       - ./volumes/book_service:/var/lib/postgresql/data
     environment:
@@ -107,7 +107,7 @@ services:
     ports:
       - "3307:3307"
     volumes:
-      - ./volumes/review_service:/var/lib/mysql/data
+      - ./volumes/review_service:/var/lib/mysql
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: review_db
