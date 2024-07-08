@@ -1,6 +1,9 @@
 package com.example.reviewservice.service;
 
+import com.example.reviewservice.exception.BookNotFoundException;
+import com.example.reviewservice.model.Book;
 import com.example.reviewservice.model.Review;
+import com.example.reviewservice.repository.BookRepository;
 import com.example.reviewservice.repository.ReviewRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,10 +16,13 @@ import java.util.Optional;
 public class ReviewService {
 
     private final ReviewRepository reviewRepository;
+    private final BookRepository bookRepository;
 
     @Autowired
-    public ReviewService(ReviewRepository reviewRepository) {
+    public ReviewService(ReviewRepository reviewRepository,
+                         BookRepository bookRepository) {
         this.reviewRepository = reviewRepository;
+        this.bookRepository = bookRepository;
     }
 
     /**
@@ -24,7 +30,14 @@ public class ReviewService {
      * @return the review that we added inside the database.
      */
     public Review addReview(Review review) {
-        return reviewRepository.save(review);
+
+        Book bookByTitle = bookRepository.findBookByTitle(review.getBookTitle());
+        if (bookByTitle != null) {
+            review.setBook(bookByTitle);
+            return reviewRepository.save(review);
+        } else {
+            throw new BookNotFoundException("The book " + review.getBookTitle() + " is not available at the moment in our store");
+        }
     }
 
     /**
@@ -56,8 +69,20 @@ public class ReviewService {
         Optional<Review> reviewOptional = reviewRepository.findById(id);
         if (reviewOptional.isPresent()) {
             Review existedReview = reviewOptional.get();
-            existedReview.setReviewText(newerReview.getReviewText());
-            existedReview.setRating(newerReview.getRating());
+            if (existedReview.getBookTitle().equals(newerReview.getBookTitle())) {
+                existedReview.setReviewText(newerReview.getReviewText());
+                existedReview.setRating(newerReview.getRating());
+            } else if (!reviewOptional.get().getBookTitle().equals(newerReview.getBookTitle())) {
+                Book bookByTitle = bookRepository.findBookByTitle(newerReview.getBookTitle());
+                if (bookByTitle != null) {
+                    existedReview.setReviewText(newerReview.getReviewText());
+                    existedReview.setRating(newerReview.getRating());
+                    existedReview.setBookTitle(newerReview.getBookTitle());
+                    existedReview.setBook(bookByTitle);
+                } else {
+                    throw new BookNotFoundException("The book " + newerReview.getBookTitle() + " is not available at the moment in our store");
+                }
+            }
             return reviewRepository.save(existedReview);
         } else {
             return new Review();

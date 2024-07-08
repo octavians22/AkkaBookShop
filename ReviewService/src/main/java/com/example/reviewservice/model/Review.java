@@ -1,9 +1,7 @@
 package com.example.reviewservice.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import jakarta.persistence.*;
 
 @Entity
 public class Review {
@@ -12,6 +10,11 @@ public class Review {
     private Long id;
     private String reviewText;
     private Integer rating;
+    private String bookTitle;
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
+    @JoinColumn(name = "book_id")
+    @JsonBackReference
+    private Book book;
 
     public Review(Long id, String reviewText, Integer rating) {
         this.id = id;
@@ -19,9 +22,10 @@ public class Review {
         this.rating = rating;
     }
 
-    public Review(String reviewText, Integer rating) {
+    public Review(String reviewText, Integer rating, Book book) {
         this.reviewText = reviewText;
         this.rating = rating;
+        this.book = book;
     }
 
     public Review() {
@@ -49,5 +53,21 @@ public class Review {
 
     public void setRating(Integer rating) {
         this.rating = rating;
+    }
+
+    public Book getBook() {
+        return book;
+    }
+
+    public void setBook(Book book) {
+        this.book = book;
+    }
+
+    public String getBookTitle() {
+        return bookTitle;
+    }
+
+    public void setBookTitle(String bookTitle) {
+        this.bookTitle = bookTitle;
     }
 }

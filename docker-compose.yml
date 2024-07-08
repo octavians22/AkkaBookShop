@@ -107,7 +107,7 @@ services:
     ports:
       - "3400:3306"
     volumes:
-      - ./volumes/review_service:/var/lib/mysql
+      - review_service_volume:/var/lib/mysql
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: review_db
@@ -132,3 +132,4 @@ services:
 
 volumes:
   db:
+  review_service_volume:
