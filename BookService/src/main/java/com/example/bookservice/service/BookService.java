@@ -1,8 +1,12 @@
 package com.example.bookservice.service;
 
+import com.example.bookservice.dto.BookDTO;
 import com.example.bookservice.exceptions.BookNotFoundException;
 import com.example.bookservice.exceptions.ExactBookAlreadyExistsException;
+import com.example.bookservice.kafka.producer.KafkaProducerService;
+import com.example.bookservice.mapper.BookMapper;
 import com.example.bookservice.model.Book;
+import com.example.bookservice.model.BookOperationType;
 import com.example.bookservice.model.Review;
 import com.example.bookservice.repository.BookRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,14 +19,21 @@ public class BookService {
 
 
 		private final BookRepository bookRepository;
+		private final KafkaProducerService kafkaProducerService;
+		private final BookMapper bookMapper;
 
 		@Autowired
-		public BookService(BookRepository bookRepository) {
+		public BookService(BookRepository bookRepository, KafkaProducerService kafkaProducerService, BookMapper bookMapper) {
 				this.bookRepository = bookRepository;
+				this.kafkaProducerService = kafkaProducerService;
+				this.bookMapper = bookMapper;
 		}
 
 		public Book addBook(Book book) {
 				if(bookRepository.findByTitleAndAuthorAndPublisher(book.getTitle(), book.getAuthor(),book.getPublisher()).isEmpty()) {
+						BookDTO bookDTO = bookMapper.toDto(book);
+						bookDTO.setBookOperationType(BookOperationType.ADD);
+						kafkaProducerService.sendMessage("review", bookDTO);
 						return bookRepository.save(book);
 				}
 				else {
@@ -46,6 +57,10 @@ public class BookService {
 				existingBook.setReviews(book.getReviews());
 
 				bookRepository.save(existingBook);
+
+				BookDTO bookDTO = bookMapper.toDto(book);
+				bookDTO.setBookOperationType(BookOperationType.UPDATE);
+				kafkaProducerService.sendMessage("review", bookDTO);
 
 				return existingBook;
 		}
@@ -72,5 +87,9 @@ public class BookService {
 				Book book = bookRepository.findById(id)
 								.orElseThrow(() -> new BookNotFoundException("Book with id " + id + " can't be deleted because it doesn't exist"));
 				bookRepository.delete(book);
+
+				BookDTO bookDTO = bookMapper.toDto(book);
+				bookDTO.setBookOperationType(BookOperationType.DELETE);
+				kafkaProducerService.sendMessage("review", bookDTO);
 		}
 }
