@@ -2,8 +2,6 @@ package com.example.reviewservice.dto;
 
 import com.example.reviewservice.model.BookOperationType;
 
-import java.util.List;
-
 public class BookDTO {
     private long id;
     private String publisher;
@@ -92,5 +90,19 @@ public class BookDTO {
 
     public void setBookOperationType(BookOperationType bookOperationType) {
         this.bookOperationType = bookOperationType;
+    }
+
+    @Override
+    public String toString() {
+        return "BookDTO{" +
+                "id=" + id +
+                ", publisher='" + publisher + '\'' +
+                ", title='" + title + '\'' +
+                ", author='" + author + '\'' +
+                ", price=" + price +
+                ", stock=" + stock +
+                ", description='" + description + '\'' +
+                ", bookOperationType=" + bookOperationType +
+                '}';
     }
 }

@@ -1,5 +1,6 @@
 package com.example.reviewservice.kafka.producer;
 
+import com.example.reviewservice.dto.BookDTO;
 import com.example.reviewservice.dto.ReviewDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -15,7 +16,11 @@ public class KafkaProducerService {
         this.kafkaTemplate = kafkaTemplate;
     }
 
-    public void sendMessage(ReviewDTO reviewDTO) {
-        kafkaTemplate.send("reviews", reviewDTO);
+    public void sendMessage(String topicName, ReviewDTO reviewDTO) {
+        kafkaTemplate.send(topicName, reviewDTO);
+    }
+
+    public void sendMessage(String topicName, BookDTO bookDTO) {
+        kafkaTemplate.send(topicName, bookDTO);
     }
 }

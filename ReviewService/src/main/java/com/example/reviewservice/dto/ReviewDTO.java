@@ -18,6 +18,12 @@ public class ReviewDTO {
         this.bookIdentifierDTO = bookIdentifierDTO;
     }
 
+    public ReviewDTO(Long id, String reviewText, int rating) {
+        this.id = id;
+        this.reviewText = reviewText;
+        this.rating = rating;
+    }
+
     public Long getId() {
         return id;
     }

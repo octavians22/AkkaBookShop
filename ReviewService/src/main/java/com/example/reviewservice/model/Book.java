@@ -8,18 +8,18 @@ import java.util.List;
 @Entity
 public class Book {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     String publisher;
     String title;
     String author;
     Double price;
     Integer stock;
-    @OneToMany(mappedBy = "book", cascade = CascadeType.DETACH, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "book", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
     @JsonManagedReference
     List<Review> reviews;
 
-    public Book(String publisher, String title, String author, Double price, Integer stock) {
+    public Book(long id, String publisher, String title, String author, Double price, Integer stock) {
+        this.id = id;
         this.publisher = publisher;
         this.title = title;
         this.author = author;

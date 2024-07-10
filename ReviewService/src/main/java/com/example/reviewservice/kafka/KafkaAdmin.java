@@ -31,4 +31,13 @@ public class KafkaAdmin {
                 .replicas(3)
                 .build();
     }
+
+    @Bean
+    public NewTopic topic2() {
+        return TopicBuilder
+                .name("book-dto")
+                .partitions(3)
+                .replicas(3)
+                .build();
+    }
 }

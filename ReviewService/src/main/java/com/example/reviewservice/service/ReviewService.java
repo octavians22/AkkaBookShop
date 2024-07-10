@@ -1,6 +1,10 @@
 package com.example.reviewservice.service;
 
+import com.example.reviewservice.dto.BookIdentifierDTO;
+import com.example.reviewservice.dto.ReviewDTO;
 import com.example.reviewservice.exception.BookNotFoundException;
+import com.example.reviewservice.kafka.producer.KafkaProducerService;
+import com.example.reviewservice.mapper.ReviewMapper;
 import com.example.reviewservice.model.Book;
 import com.example.reviewservice.model.Review;
 import com.example.reviewservice.repository.BookRepository;
@@ -17,12 +21,16 @@ public class ReviewService {
 
     private final ReviewRepository reviewRepository;
     private final BookRepository bookRepository;
+    private final KafkaProducerService producerService;
+    private final ReviewMapper reviewMapper;
 
     @Autowired
     public ReviewService(ReviewRepository reviewRepository,
-                         BookRepository bookRepository) {
+                         BookRepository bookRepository, KafkaProducerService producerService, ReviewMapper reviewMapper) {
         this.reviewRepository = reviewRepository;
         this.bookRepository = bookRepository;
+        this.producerService = producerService;
+        this.reviewMapper = reviewMapper;
     }
 
     /**
@@ -34,7 +42,9 @@ public class ReviewService {
         Book bookByTitle = bookRepository.findBookByTitle(review.getBookTitle());
         if (bookByTitle != null) {
             review.setBook(bookByTitle);
-            return reviewRepository.save(review);
+            Review saved = reviewRepository.save(review);
+            sendDTOToKafka(saved, bookByTitle);
+            return saved;
         } else {
             throw new BookNotFoundException("The book " + review.getBookTitle() + " is not available at the moment in our store");
         }
@@ -94,5 +104,16 @@ public class ReviewService {
      */
     public void deleteReview(Long id) {
         reviewRepository.deleteById(id);
+    }
+
+    public BookIdentifierDTO createBookIdentifier(Book book) {
+        return new BookIdentifierDTO(book.getPublisher(), book.getTitle(), book.getAuthor());
+    }
+
+    public void sendDTOToKafka(Review review, Book book) {
+        ReviewDTO reviewDTO = reviewMapper.toDTO(review);
+        BookIdentifierDTO bookIdentifier = createBookIdentifier(book);
+        reviewDTO.setBookIdentifierDTO(bookIdentifier);
+        producerService.sendMessage("reviews", reviewDTO);
     }
 }
