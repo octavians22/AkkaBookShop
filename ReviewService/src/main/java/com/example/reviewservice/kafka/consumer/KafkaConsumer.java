@@ -10,7 +10,11 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.annotation.DltHandler;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.annotation.RetryableTopic;
+import org.springframework.kafka.support.Acknowledgment;
+import org.springframework.retry.annotation.Backoff;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -27,20 +31,27 @@ public class KafkaConsumer {
 
     @KafkaListener(topics = "reviews", groupId = "review-I")
     public void consumeReviewDTO(ConsumerRecord<String, ReviewDTO> message) {
-        message.value();
+        // message.value();
+        throw new RuntimeException();
     }
 
+    @RetryableTopic(attempts = "4"/*, backoff = @Backoff(delay = 1000, multiplier = 2)*/)
     @KafkaListener(topics = "book-dto", groupId = "book-I", containerFactory = "listener")
-    public void consumeBookDTO(ConsumerRecord<String, BookDTO> message) {
+    public void consumeBookDTO(ConsumerRecord<String, BookDTO> message, Acknowledgment acknowledgment) {
 
         logger.info("The following message has been received: " + message.value());
         BookDTO bookDTO = message.value();
-
         Book book = bookMapper.toEntity(bookDTO);
 
+        /**
+         * TODO Check daca deja nu exista o carte de genul in baza de date. Daca exista, atunci nu mai
+         * facem operatie de ADD pentru ca ar duce la duplicate.
+         * Check ul putem sa l facem folosind acel BookIdentifierDTO!
+         */
         if (bookDTO.getBookOperationType().equals(BookOperationType.ADD)) {
-            bookService.addBook(book);
+            /*bookService.addBook(book);*/
             logger.info("Book has been added into the database");
+            throw new RuntimeException();
         }
 
         if (bookDTO.getBookOperationType().equals(BookOperationType.UPDATE)) {
@@ -52,5 +63,12 @@ public class KafkaConsumer {
             bookService.deleteBook(bookDTO.getId());
             logger.info("Book deletion process was activated");
         }
+        acknowledgment.acknowledge(); // for committing the offsets
+    }
+
+    @DltHandler
+    public void sendBookToDLT(ConsumerRecord<String, BookDTO> record, Acknowledgment acknowledgment) {
+        logger.info("Message sent to DLT : " + record.value());
+        acknowledgment.acknowledge();
     }
 }

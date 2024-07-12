@@ -37,7 +37,7 @@ public class BookService {
 
     public Book findById(Long id) {
         Optional<Book> reviewOptional = bookRepository.findById(id);
-        return reviewOptional.orElse(new Book());
+        return reviewOptional.orElseThrow(() -> new BookNotFoundException(id));
     }
 
     public Book updateBook(Book updatedBook, Long id) {
@@ -53,7 +53,7 @@ public class BookService {
             existedBook.setReviews(updatedBook.getReviews());
             return bookRepository.save(existedBook);
         } else {
-            throw new BookNotFoundException("The book with the id = " + id + " was not found in the database");
+            throw new BookNotFoundException(id);
         }
     }
 
@@ -61,7 +61,7 @@ public class BookService {
         if (bookRepository.findById(id).isPresent()) {
             bookRepository.deleteById(id);
         } else {
-            throw new BookNotFoundException("The book with the id = " + id + " was not found in the database");
+            throw new BookNotFoundException(id);
         }
 
     }
