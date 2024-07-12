@@ -16,7 +16,7 @@ services:
     depends_on:
       - zookeeper
     ports:
-      - "29092:29092"
+     - "29092:29092"
 
     environment:
       KAFKA_BROKER_ID: 1
@@ -53,47 +53,47 @@ services:
       CONFLUENT_SUPPORT_CUSTOMER_ID: anonymous
 
   broker3:
-    image: confluentinc/cp-kafka:latest
-    container_name: kafka-broker3
-    depends_on:
-      - zookeeper
-    ports:
-      - "29094:29094"
+      image: confluentinc/cp-kafka:latest
+      container_name: kafka-broker3
+      depends_on:
+        - zookeeper
+      ports:
+        - "29094:29094"
 
-    environment:
-      KAFKA_BROKER_ID: 3
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker3:9092,PLAINTEXT_HOST://localhost:29094
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      CONFLUENT_METRICS_ENABLE: true
-      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: broker3:9092
-      CONFLUENT_METRICS_REPORTER_ZOOKEEPER_CONNECT: zookeeper:2181
-      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1
-      CONFLUENT_SUPPORT_CUSTOMER_ID: anonymous
+      environment:
+        KAFKA_BROKER_ID: 3
+        KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+        KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker3:9092,PLAINTEXT_HOST://localhost:29094
+        KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+        KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+        KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+        CONFLUENT_METRICS_ENABLE: true
+        CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: broker3:9092
+        CONFLUENT_METRICS_REPORTER_ZOOKEEPER_CONNECT: zookeeper:2181
+        CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1
+        CONFLUENT_SUPPORT_CUSTOMER_ID: anonymous
 
 
   kafka-ui-akka:
-    image: provectuslabs/kafka-ui:latest
-    container_name: kafka-ui-akka
-    depends_on:
-      - broker1
-      - broker2
-      - broker3
-    ports:
-      - "8090:8080"
-    environment:
-      KAFKA_CLUSTERS_0_NAME: local
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: broker1:9092,broker2:9092,broker3:9092
-      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+        image: provectuslabs/kafka-ui:latest
+        container_name: kafka-ui-akka
+        depends_on:
+          - broker1
+          - broker2
+          - broker3
+        ports:
+          - "8090:8080"
+        environment:
+          KAFKA_CLUSTERS_0_NAME: local
+          KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: broker1:9092,broker2:9092,broker3:9092
+          KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
 
 
   postgres_db:
     image: postgres:latest
     container_name: postgres_db
     ports:
-      - "5432:5432"
+    - "5432:5432"
     volumes:
       - ./volumes/book_service:/var/lib/postgresql
     environment:
