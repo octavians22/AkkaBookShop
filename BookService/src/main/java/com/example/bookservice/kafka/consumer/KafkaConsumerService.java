@@ -8,7 +8,6 @@ import com.example.bookservice.mapper.ReviewMapper;
 import com.example.bookservice.model.Book;
 import com.example.bookservice.model.Review;
 import com.example.bookservice.repository.BookRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.DltHandler;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -23,13 +22,12 @@ import static org.apache.kafka.common.requests.DeleteAclsResponse.log;
 
 @Service
 public class KafkaConsumerService {
-
-		private final ObjectMapper objectMapper = new ObjectMapper();
 		private final BookRepository bookRepository;
 		private final ReviewMapper reviewMapper;
 		private final KafkaProducerService kafkaProducerService;
 		private List<Review> reviewList;
 		private int maximum_retries;
+		private ReviewDTO reviewDTO;
 
 		public KafkaConsumerService(BookRepository bookRepository, ReviewMapper reviewMapper, KafkaProducerService kafkaProducerService) {
 				this.bookRepository = bookRepository;
@@ -45,7 +43,7 @@ public class KafkaConsumerService {
 		@KafkaListener(topics = "book-reviews", groupId = "book-group")
 		public void listenReviews(ConsumerRecord<String, ReviewDTO> record) throws Exception {
 
-//							if(true){
+//							if(true) {
 //								throw new Exception("exception");
 //						}
 
@@ -69,17 +67,17 @@ public class KafkaConsumerService {
 
 		@DltHandler
 		public void handleDltPayment(ConsumerRecord<String, ReviewDTO> record) {
-
 				try {
 						if(maximum_retries < 2)
 						{
-								ReviewDTO	reviewDTO =  record.value();
+								reviewDTO =  record.value();
 								log.info("Event on dlt topic={}, payload={}", record.topic(), reviewDTO);
 								kafkaProducerService.sendMessage("book-reviews", reviewDTO);
 								maximum_retries++;
 						}
 						else {
 								log.info("Message can't be processed further. Manual intervention is required");
+								kafkaProducerService.sendMessage("book-reviews-dlt-failed", reviewDTO);
 						}
 				} catch (Exception e) {
 						log.error("Error processing DLT message: ", e);

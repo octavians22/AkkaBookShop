@@ -41,4 +41,15 @@ public class KafkaAdminConfig {
 								.replicas(3)
 								.build();
 		}
+
+		@Bean
+		public NewTopic topic2() {
+				return TopicBuilder
+								.name("book-available_books")
+								.partitions(3)
+								.replicas(3)
+								.build();
+		}
+
+
 }
